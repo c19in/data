@@ -124,22 +124,23 @@ stopifnot(length(timeseries_min_original) == 1)
 timeseries_min_string <- minify(toJSON(timeseries_min, auto_unbox = TRUE))
 stopifnot(timeseries_min_original == timeseries_min_string)
 
-
 ## Hmm, this is only statewise historical data. From where does the
 ## website get district-wise historical data?
 
 ## Anyway, let's do one line date-wise so that only new lines are added 
 
-write_timeseries_min <- function(x, file = "")
+write_timeseries_min <- function(x, file = "", newfile = TRUE)
 {
     stringify <- function(obj) minify(toJSON(obj, auto_unbox = TRUE))
     write2file <- function(..., append = TRUE) cat(..., file = file, sep = "", append = append)
     ## x is a nested list. First levels are states > "dates" > "YYYY-MM-DD"
-    write2file("{", append = FALSE)
+    write2file("{", append = !newfile)
     for (i in seq_along(x))
     {
         s <- names(x)[i]
         write2file('\n"', s, '":{')
+        ## x[[s]] has only 'dates' for state level data, and 'dates'
+        ## and 'districts' for district level data.
         if (!identical(names(x[[s]]), "dates"))
             stop("Expecting a single component named 'dates', found ",
                  paste(names(x[[s]]), collpse = " "))
@@ -167,3 +168,62 @@ write_timeseries_min(timeseries_min, file = "timeseries.min.json")
 
 reread <- read_json("timeseries.min.json")
 stopifnot(identical(reread, timeseries_min))
+
+## Do the same for statewise
+
+state_codes <- c("AP", "AR", "AS", "BR", "CT", "GA", "GJ", "HR", "HP",
+                 "JH", "KA", "KL", "MP", "MH", "MN", "ML", "MZ", "NL",
+                 "OR", "PB", "RJ", "SK", "TN", "TG", "TR", "UT", "UP",
+                 "WB", "AN", "CH", "DN", "DL", "JK", "LA", "LD", "PY")
+
+
+## For states, two components under state, dates and districts. dates
+## is a repeat of the above, but only for one state. Then districts
+## has each district, with the same structure as a state.
+
+## For the districts part, we will re-use the state timeseries code.
+
+write_timeseries_state_min <- function(x, file = "")
+{
+    stopifnot(length(x) == 1)
+    stringify <- function(obj) minify(toJSON(obj, auto_unbox = TRUE))
+    write2file <- function(..., append = TRUE) cat(..., file = file, sep = "", append = append)
+    ## x is a nested list. First levels are states > "dates" > "YYYY-MM-DD"
+    write2file("{", append = FALSE)
+    s <- names(x)
+    write2file('\n"', s, '":{')
+    ## x[[s]] has only 'dates' for state level data, and 'dates'
+    ## and 'districts' for district level data.
+    if (!all(names(x[[s]] %in% c("dates", "districts"))))
+        stop("Expecting components named 'dates' and 'districts', found ",
+             paste(names(x[[s]]), collapse = " "))
+    write2file('\n"dates":{')
+    dlist <- x[[s]][["dates"]]
+    for (j in seq_along(dlist))
+    {
+        d <- names(dlist)[j]
+        write2file('\n"', d, '":')
+        write2file(stringify(dlist[[d]]))
+        if (j < length(dlist)) write2file(",")
+    }
+    ## close 'dates' but not state, and start districts
+    write2file('\n},\n"districts":')
+    write_timeseries_min(x[[s]][["districts"]], file = file, newfile = FALSE)
+    ## close 'districts' and state
+    write2file("\n}}")
+}
+
+
+
+for (STATECODE in state_codes)
+{
+    message(STATECODE)
+    state_json_file <- sprintf("timeseries-%s.min.json", STATECODE)
+    timeseries_state <- read_json(file.path("tmp", state_json_file))
+    write_timeseries_state_min(timeseries_state, file = state_json_file)
+    reread <- read_json(state_json_file)
+    stopifnot(identical(reread, timeseries_state))
+}
+
+## Finally, TT is India. TODO
+
