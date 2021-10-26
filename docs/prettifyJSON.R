@@ -162,6 +162,7 @@ write_timeseries_min <- function(x, file = "", newfile = TRUE)
     write2file("\n}")
 }
 
+message("Rewriting timeseries.min.json")
 write_timeseries_min(timeseries_min, file = "timeseries.min.json")
 
 ## verify that file can be read as JSON
@@ -217,7 +218,7 @@ write_timeseries_state_min <- function(x, file = "")
 
 for (STATECODE in state_codes)
 {
-    message(STATECODE)
+    message(sprintf("Rewriting timeseries-%s.min.json", STATECODE))
     state_json_file <- sprintf("timeseries-%s.min.json", STATECODE)
     timeseries_state <- read_json(file.path("tmp", state_json_file))
     write_timeseries_state_min(timeseries_state, file = state_json_file)
