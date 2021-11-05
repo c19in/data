@@ -91,7 +91,7 @@ names(STATE.CODES) <- STATE.NAMES
 
 DATES <- as.character(seq(as.Date("2020-01-30"), Sys.Date(), by = 1))
 
-extractDataByDate <- function(D)
+extractDataByDate <- function(D, add.unassigned = TRUE)
 {
     ldate <- 
         lapply(STATE.CODES,
@@ -104,12 +104,45 @@ extractDataByDate <- function(D)
     ddate <- do.call(rbind, ldate)
     if (is.null(ddate))
         return(NULL)
-    else
-        return(cbind(Date = D, State = rownames(ddate),
-                     as.data.frame(ddate)))
+    else {
+        ddate <-
+            cbind(Date = D, State = rownames(ddate),
+                  as.data.frame(ddate))
+        if (add.unassigned)
+        {
+            ## If India number does not equal state total, add a row
+            ## with State="State Unassigned".
+            w <- which(ddate$State == "India")
+            stopifnot(length(w) == 1)
+            unassigned.c <- ddate$Confirmed[w] - sum(ddate$Confirmed[-w])
+            unassigned.r <- ddate$Recovered[w] - sum(ddate$Recovered[-w])
+            unassigned.d <- ddate$Deceased[w] - sum(ddate$Deceased[-w])
+            if (unassigned.c | unassigned.r | unassigned.d)
+            {
+                message(sprintf("(C,R,D) discrepancy on %s = (%d,%d,%d)",
+                                D, unassigned.c, unassigned.r, unassigned.d))
+                ## Insert new column right after India
+                ddate <- rbind(head(ddate, w),
+                               tail(ddate, -(w-1))) # second one is duplicate
+                ddate$State[w+1] <- "State Unassigned"
+                ddate$Confirmed[w+1] <- unassigned.c
+                ddate$Recovered[w+1] <- unassigned.r
+                ddate$Deceased[w+1] <- unassigned.d
+                ddate$Other[w+1] <- 0 # ignore
+                ddate$Tested[w+1] <- 0 # ignore
+                str(ddate[w+1, ])
+            }
+        }
+        rownames(ddate) <- NULL
+        ## drop states that have all 0 confirmed
+        ddate <- subset(ddate, Confirmed + Other + Tested != 0)
+        return(ddate)
+    }
 }
 
-states <- do.call(rbind, lapply(DATES, extractDataByDate))
+str(extractDataByDate("2021-03-02"))
+
+states <- do.call(rbind, lapply(DATES, extractDataByDate, add.unassigned = TRUE))
 
 ## One special case handled here: Tested==0 really means NA. These
 ## were missing in the JSON, but to handle 'Other' we converted them
