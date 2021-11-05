@@ -1,7 +1,7 @@
 State,Confirmed,Recovered,Deaths,Active,Last_Updated_Time,Migrated_Other,State_code,Delta_Confirmed,Delta_Recovered,Delta_Deaths,State_Notes
-Total,34328569,33711697,459876,143799,13/08/2021 23:27:22,13197,TT,0,0,0,
+Total,34329196,33712530,459882,143587,13/08/2021 23:27:22,13197,TT,0,0,0,
 Andaman and Nicobar Islands,7657,7518,129,10,13/08/2021 23:27:22,0,AN,0,0,0,
-Andhra Pradesh,2066929,2048505,14382,4042,13/08/2021 23:27:22,0,AP,0,0,0,
+Andhra Pradesh,2067556,2049338,14388,3830,13/08/2021 23:27:22,0,AP,0,0,0,
 Arunachal Pradesh,55176,54793,291,92,13/08/2021 23:27:22,0,AR,0,0,0,[July 25]: All numbers corresponding to Papum Pare and Captial Complex are tracked under Papum Pare district.
 Assam,610915,601133,6004,2431,13/08/2021 23:27:22,1347,AS,0,0,0,[Jan 1]: 1347 cases i.e Covid +'tive patients dead for other reasons have been deducted fom active count.
 Bihar,726120,716415,9661,43,13/08/2021 23:27:22,1,BR,0,0,0,[June 9] : 3951 deceased cases have been reported in the bulletin after reconciliation of records by the authorities
