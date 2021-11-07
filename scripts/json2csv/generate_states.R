@@ -91,7 +91,7 @@ names(STATE.CODES) <- STATE.NAMES
 
 DATES <- as.character(seq(as.Date("2020-01-30"), Sys.Date(), by = 1))
 
-extractDataByDate <- function(D, add.unassigned = TRUE)
+extractDataByDate <- function(D, jdata, add.unassigned = TRUE)
 {
     ldate <- 
         lapply(STATE.CODES,
@@ -130,7 +130,7 @@ extractDataByDate <- function(D, add.unassigned = TRUE)
                 ddate$Deceased[w+1] <- unassigned.d
                 ddate$Other[w+1] <- 0 # ignore
                 ddate$Tested[w+1] <- 0 # ignore
-                str(ddate[w+1, ])
+                ## str(ddate[w+1, ])
             }
         }
         rownames(ddate) <- NULL
@@ -140,9 +140,11 @@ extractDataByDate <- function(D, add.unassigned = TRUE)
     }
 }
 
-str(extractDataByDate("2021-03-02"))
+str(extractDataByDate("2021-03-02", jdata))
 
-states <- do.call(rbind, lapply(DATES, extractDataByDate, add.unassigned = TRUE))
+states <- do.call(rbind,
+                  lapply(DATES, extractDataByDate, jdata = jdata,
+                         add.unassigned = TRUE))
 
 ## One special case handled here: Tested==0 really means NA. These
 ## were missing in the JSON, but to handle 'Other' we converted them
